@@ -3,9 +3,21 @@
  * Copyright (C) 2022 MediaTek Inc.
  */
 
+#include <linux/moduleparam.h>
 #include <linux/firmware.h>
 #include "mt7996.h"
 #include "eeprom.h"
+
+static char *eeprom_mac1 = NULL;
+static char *eeprom_mac2 = NULL;
+static char *eeprom_mac3 = NULL;
+
+module_param(eeprom_mac1, charp, 0444);
+MODULE_PARM_DESC(eeprom_mac1, "Override EEPROM MAC address 1");
+module_param(eeprom_mac2, charp, 0444);
+MODULE_PARM_DESC(eeprom_mac2, "Override EEPROM MAC address 2");
+module_param(eeprom_mac3, charp, 0444);
+MODULE_PARM_DESC(eeprom_mac3, "Override EEPROM MAC address 3");
 
 static int mt7996_check_eeprom(struct mt7996_dev *dev)
 {
@@ -319,6 +331,26 @@ int mt7996_eeprom_parse_hw_cap(struct mt7996_dev *dev, struct mt7996_phy *phy)
 						hweight16(mphy->chainmask);
 
 	return mt7996_eeprom_parse_band_config(phy);
+}
+
+static void mt7996_eeprom_set_custom_macs(struct mt7996_dev *dev)
+{
+	u8 mac1[ETH_ALEN], mac2[ETH_ALEN], mac3[ETH_ALEN];
+
+	if (eeprom_mac1 && mac_pton(eeprom_mac1, mac1)) {
+		memcpy(dev->mt76.eeprom.data + MT_EE_MAC_ADDR, mac1, ETH_ALEN);
+		dev_info(dev->mt76.dev, "mt7996: set mac1 to %pM\n", mac1);
+	}
+
+	if (eeprom_mac2 && mac_pton(eeprom_mac2, mac2)) {
+		memcpy(dev->mt76.eeprom.data + MT_EE_MAC_ADDR2, mac2, ETH_ALEN);
+		dev_info(dev->mt76.dev, "mt7996: set mac2 to %pM\n", mac2);
+	}
+
+	if (eeprom_mac3 && mac_pton(eeprom_mac3, mac3)) {
+		memcpy(dev->mt76.eeprom.data + MT_EE_MAC_ADDR3, mac3, ETH_ALEN);
+		dev_info(dev->mt76.dev, "mt7996: set mac3 to %pM\n", mac3);
+	}
 }
 
 int mt7996_eeprom_init(struct mt7996_dev *dev)
