@@ -657,7 +657,18 @@ static int mt7996_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 static int mt7996_config(struct ieee80211_hw *hw, u32 changed)
 {
-	return 0;
+	struct mt7996_dev *dev = mt7996_hw_dev(hw);
+	struct mt76_phy *mphy = hw->priv;
+	int ret = 0;
+
+	mutex_lock(&dev->mt76.mutex);
+
+	if (changed & IEEE80211_CONF_CHANGE_POWER)
+		ret = mt76_connac_mcu_set_rate_txpower(mphy);
+
+	mutex_unlock(&dev->mt76.mutex);
+
+	return ret;
 }
 
 static int
