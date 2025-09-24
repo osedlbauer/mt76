@@ -2213,6 +2213,10 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 			break;
 		}
 
+		dev_info(dev->dev,
+			 "TX power batch %d/%d for band %d (%d channels)\n",
+			 i + 1, batch_size, band, num_ch);
+
 		for (j = 0; j < num_ch; j++, idx++) {
 			struct ieee80211_channel chan = {
 				.hw_value = ch_list[idx],
@@ -2233,6 +2237,11 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 			mt76_connac_mcu_build_sku(dev, sku_tlbv.pwr_limit,
 						  limits, band);
 			skb_put_data(skb, &sku_tlbv, sku_len);
+
+			dev_info(dev->dev,
+				 "Band %d, chan %d: config-txpower=%d, reg=%d, sar=%d, final=%d",
+				 band, chan.hw_value, tx_power, reg_power, sar_power,
+				 limits->cck[0]);
 		}
 		__skb_push(skb, sizeof(tx_power_tlv));
 		memcpy(skb->data, &tx_power_tlv, sizeof(tx_power_tlv));
@@ -2254,18 +2263,22 @@ int mt76_connac_mcu_set_rate_txpower(struct mt76_phy *phy)
 	int err;
 
 	if (phy->cap.has_2ghz) {
+		dev_info(phy->dev->dev, "Setting TX power for 2.4 GHz band");
+
 		err = mt76_connac_mcu_rate_txpower_band(phy,
 							NL80211_BAND_2GHZ);
 		if (err < 0)
 			return err;
 	}
 	if (phy->cap.has_5ghz) {
+		dev_info(phy->dev->dev, "Setting TX power for 5 GHz band");
 		err = mt76_connac_mcu_rate_txpower_band(phy,
 							NL80211_BAND_5GHZ);
 		if (err < 0)
 			return err;
 	}
 	if (phy->cap.has_6ghz) {
+		dev_info(phy->dev->dev, "Setting TX power for 6 GHz band");
 		err = mt76_connac_mcu_rate_txpower_band(phy,
 							NL80211_BAND_6GHZ);
 		if (err < 0)

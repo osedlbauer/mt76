@@ -663,8 +663,11 @@ static int mt7996_config(struct ieee80211_hw *hw, u32 changed)
 
 	mutex_lock(&dev->mt76.mutex);
 
-	if (changed & IEEE80211_CONF_CHANGE_POWER)
+	if (changed & IEEE80211_CONF_CHANGE_POWER){
+		dev_info(dev->mt76.dev,
+			 "Update in mt7996 config, set rate txpower");
 		ret = mt76_connac_mcu_set_rate_txpower(mphy);
+	}
 
 	mutex_unlock(&dev->mt76.mutex);
 
